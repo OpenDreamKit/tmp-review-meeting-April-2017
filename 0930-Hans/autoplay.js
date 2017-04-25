@@ -1,15 +1,23 @@
+// parameters in seconds
+var STEP_DELAY = 1;
+var RESTART_DELAY = 3;
+
 require(["jquery", "base/js/namespace"], function($, Jupyter) {
   var Autoplay = function() {
     this.interval = null;
     this._stopped = false;
-    this.step_ms = 2000;
-    this.restart_ms = 60000;
+    this.step_ms = STEP_DELAY * 1000;
+    this.restart_ms = RESTART_DELAY * 1000;
   };
 
   Autoplay.prototype.step = function() {
     // don't do anything if another window has focus
     if (!document.hasFocus()) {
       console.debug("autoplay: out of focus");
+      return;
+    }
+    if (this.busy) {
+      console.debug("autoplay: busy...");
       return;
     }
     var nb = Jupyter.notebook;
@@ -49,12 +57,13 @@ require(["jquery", "base/js/namespace"], function($, Jupyter) {
           autoplay.start();
         });
       },
-      this.restart_ms,
+      this.restart_ms
     );
   };
 
   Autoplay.prototype.stop = function() {
     this._stopped = true;
+    this.busy = false;
     if (this.interval) {
       console.debug("autoplay: stopping");
       this._stop();
@@ -69,14 +78,22 @@ require(["jquery", "base/js/namespace"], function($, Jupyter) {
   Autoplay.prototype.start = function(ms) {
     ms = ms || this.step_ms;
     this._stop();
+    var nb = Jupyter.notebook;
     console.debug("autoplay: starting");
     this.pasued = false;
     var autoplay = this;
+    autoplay.busy = false;
+    nb.events.on('kernel_busy.Kernel', function () {
+      autoplay.busy = true;
+    });
+    nb.events.on('kernel_idle.Kernel', function () {
+      autoplay.busy = false;
+    });
     this.interval = setInterval(
       function() {
         autoplay.step();
       },
-      ms,
+      ms
     );
   };
 
