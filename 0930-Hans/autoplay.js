@@ -6,8 +6,8 @@ require(["jquery", "base/js/namespace"], function($, Jupyter) {
   var Autoplay = function() {
     this.interval = null;
     this._stopped = false;
-    this.step_ms = STEP_DELAY * 1000;
-    this.restart_ms = RESTART_DELAY * 1000;
+    this.step_ms = STEP_DELAY * 2000;
+    this.restart_ms = RESTART_DELAY * 3000;
   };
 
   Autoplay.prototype.step = function() {
